@@ -4,8 +4,8 @@ using UnityEngine;
 
 public static class Noise
 {
-    public static float[,] GenerateNoiseMap(int mapWidth, int mapHeight, int seed, float noiseScale, int octaves, float persistence, float lacunarity, Vector2 offset) {
-        float[,] noiseMap = new float[mapWidth,mapHeight];
+    public static void GenerateNoiseMap(ref float[,] noiseMap, int mapWidth, int mapHeight, int seed, float noiseScale, int octaves, float persistence, float lacunarity, Vector2 offset, bool useFalloff) {
+        // float[,] noiseMap = new float[mapWidth,mapHeight];
 
         System.Random prng = new System.Random(seed);
         Vector2[] octaveOffsets = new Vector2[octaves];
@@ -57,10 +57,22 @@ public static class Noise
 
         for(int y = 0; y < mapHeight; y++) {
             for(int x = 0; x < mapWidth; x++) {
+                float falloff = 0.0f;
+
+                if(useFalloff) falloff = Mathf.Max(Noise.valley((x-mapWidth/2)/(float)(mapWidth/2)), Noise.valley((y-mapHeight/2)/(float)(mapHeight/2)));
+
                 noiseMap[x, y] = Mathf.InverseLerp(minNoiseHeight, maxNoiseHeight, noiseMap[x, y]);
+                noiseMap[x, y] = Mathf.Clamp01(noiseMap[x, y] - falloff);
             }
         }
 
-        return noiseMap;
+        // return noiseMap;
+    }
+
+    public static float valley(float t) {
+        float a = 2.0f;
+        float b = 2.0f;
+        t = Mathf.Abs(t);
+        return Mathf.Pow(t, a) / (Mathf.Pow(t, a) + Mathf.Pow((b - b*t), a));
     }
 }
